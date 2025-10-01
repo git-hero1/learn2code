@@ -1,0 +1,36 @@
+public static class AStar {
+    public static List<int> FindPath(Graph g, int start, int goal, Func<int,double> h) {
+        var gScore = new Dictionary<int,double>();
+        var fScore = new Dictionary<int,double>();
+        var parent = new Dictionary<int,int>();
+        foreach (var u in g.Adj.Keys) { gScore[u] = double.PositiveInfinity; fScore[u] = double.PositiveInfinity; }
+        gScore[start] = 0; fScore[start] = h(start);
+
+        var open = new PriorityQueue<int,double>();
+        open.Enqueue(start, fScore[start]);
+        var inOpen = new HashSet<int> { start };
+
+        while (open.Count > 0) {
+            open.TryDequeue(out int u, out _);
+            if (u == goal) return Reconstruct(parent, goal);
+            inOpen.Remove(u);
+
+            foreach (var (v, w) in g.Adj[u]) {
+                double tentative = gScore[u] + w;
+                if (tentative < gScore[v]) {
+                    gScore[v] = tentative;
+                    fScore[v] = tentative + h(v);
+                    parent[v] = u;
+                    if (!inOpen.Contains(v)) { open.Enqueue(v, fScore[v]); inOpen.Add(v); }
+                }
+            }
+        }
+        return new List<int>(); // no path
+    }
+
+    static List<int> Reconstruct(Dictionary<int,int> parent, int goal) {
+        var path = new List<int> { goal };
+        while (parent.ContainsKey(path[^1])) path.Add(parent[path[^1]]);
+        path.Reverse(); return path;
+    }
+}
