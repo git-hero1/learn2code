@@ -1,0 +1,21 @@
+public static class GreedyBestFirst {
+    public static List<int> Search(Graph g, int start, int goal, Func<int,double> h) {
+        var pq = new PriorityQueue<int,double>();
+        var parent = new Dictionary<int,int>();
+        var vis = new HashSet<int>();
+        pq.Enqueue(start, h(start));
+
+        while (pq.Count > 0) {
+            pq.TryDequeue(out int u, out _);
+            if (!vis.Add(u)) continue;
+            if (u == goal) break;
+            foreach (var (v, _) in g.Adj[u])
+                if (!vis.Contains(v)) { parent[v] = u; pq.Enqueue(v, h(v)); }
+        }
+
+        if (!parent.ContainsKey(goal) && start != goal) return new List<int>();
+        var path = new List<int> { goal };
+        while (path[^1] != start) path.Add(parent[path[^1]]);
+        path.Reverse(); return path;
+    }
+}
